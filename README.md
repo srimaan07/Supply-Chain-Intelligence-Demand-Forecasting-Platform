@@ -1,6 +1,6 @@
 # Supply Chain Intelligence & Demand Forecasting Platform
 
-A production-grade supply chain analytics platform simulating enterprise systems used by Amazon, Walmart, Flipkart, and Target. Built for **Data Analyst**, **Business Analyst**, **Analytics Engineer**, and **Supply Chain Analytics** portfolio showcase.
+A production-grade supply chain analytics platform simulating enterprise systems used by Amazon, Walmart, Flipkart.
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green.svg)](https://fastapi.tiangolo.com)
