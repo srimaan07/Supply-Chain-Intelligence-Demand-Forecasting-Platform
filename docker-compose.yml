@@ -1,0 +1,61 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sc_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-supply_chain}
+      POSTGRES_USER: ${POSTGRES_USER:-sc_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sc_secure_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sc_admin} -d ${POSTGRES_DB:-supply_chain}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    container_name: sc_api
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-supply_chain}
+      POSTGRES_USER: ${POSTGRES_USER:-sc_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sc_secure_password}
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./reports:/app/reports
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000
+
+  pipeline:
+    build: .
+    container_name: sc_pipeline
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-supply_chain}
+      POSTGRES_USER: ${POSTGRES_USER:-sc_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sc_secure_password}
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./reports:/app/reports
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - pipeline
+    command: python scripts/run_pipeline.py --full
+
+volumes:
+  postgres_data:
